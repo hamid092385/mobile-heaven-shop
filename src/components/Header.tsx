@@ -1,11 +1,22 @@
 import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Search, ShoppingCart, Menu, X, User, Heart, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+const navItems = [
+  { label: "صفحه اصلی", path: "/" },
+  { label: "گوشی موبایل", path: "/mobile-phones" },
+  { label: "تبلت", path: "/tablets" },
+  { label: "لوازم جانبی", path: "/accessories" },
+  { label: "پیشنهادات ویژه", path: "/special-offers" },
+  { label: "تماس با ما", path: "/contact" },
+];
+
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [cartCount] = useState(3);
+  const location = useLocation();
 
   return (
     <header className="sticky top-0 z-50 w-full glass-card border-b border-border/50">
@@ -92,16 +103,16 @@ const Header = () => {
       <nav className="hidden md:block border-t border-border/30">
         <div className="container">
           <ul className="flex items-center gap-8 py-3">
-            {["صفحه اصلی", "گوشی موبایل", "تبلت", "لوازم جانبی", "پیشنهادات ویژه", "تماس با ما"].map((item, index) => (
-              <li key={index}>
-                <a
-                  href="#"
+            {navItems.map((item) => (
+              <li key={item.path}>
+                <Link
+                  to={item.path}
                   className={`text-sm font-medium transition-colors hover:text-primary ${
-                    index === 0 ? "text-primary" : "text-foreground"
+                    location.pathname === item.path ? "text-primary" : "text-foreground"
                   }`}
                 >
-                  {item}
-                </a>
+                  {item.label}
+                </Link>
               </li>
             ))}
           </ul>
@@ -113,11 +124,17 @@ const Header = () => {
         <div className="md:hidden absolute top-full left-0 right-0 glass-card border-t border-border/30 animate-slide-up">
           <nav className="container py-4">
             <ul className="space-y-4">
-              {["صفحه اصلی", "گوشی موبایل", "تبلت", "لوازم جانبی", "پیشنهادات ویژه", "تماس با ما"].map((item, index) => (
-                <li key={index}>
-                  <a href="#" className="block py-2 text-foreground hover:text-primary transition-colors">
-                    {item}
-                  </a>
+              {navItems.map((item) => (
+                <li key={item.path}>
+                  <Link 
+                    to={item.path} 
+                    className={`block py-2 transition-colors hover:text-primary ${
+                      location.pathname === item.path ? "text-primary" : "text-foreground"
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
                 </li>
               ))}
             </ul>
