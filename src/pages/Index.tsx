@@ -1,13 +1,32 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Helmet } from "react-helmet";
+import Header from "@/components/Header";
+import HeroSection from "@/components/HeroSection";
+import BrandSection from "@/components/BrandSection";
+import FeaturedProducts from "@/components/FeaturedProducts";
+import SpecialOffers from "@/components/SpecialOffers";
+import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <>
+      <Helmet>
+        <title>موبایل مارکت | فروشگاه آنلاین گوشی هوشمند</title>
+        <meta
+          name="description"
+          content="بزرگترین فروشگاه آنلاین گوشی موبایل در ایران. خرید آیفون، سامسونگ، شیائومی با گارانتی اصالت و ارسال سریع."
+        />
+      </Helmet>
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main>
+          <HeroSection />
+          <BrandSection />
+          <FeaturedProducts />
+          <SpecialOffers />
+        </main>
+        <Footer />
       </div>
-    </div>
+    </>
   );
 };
 
