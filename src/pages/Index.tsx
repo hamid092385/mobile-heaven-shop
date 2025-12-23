@@ -2,8 +2,8 @@ import { Helmet } from "react-helmet";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import BrandSection from "@/components/BrandSection";
-import FeaturedProducts from "@/components/FeaturedProducts";
-import SpecialOffers from "@/components/SpecialOffers";
+import FeaturedProductsNew from "@/components/FeaturedProductsNew";
+import SpecialOffersNew from "@/components/SpecialOffersNew";
 import Footer from "@/components/Footer";
 
 const Index = () => {
@@ -21,8 +21,8 @@ const Index = () => {
         <main>
           <HeroSection />
           <BrandSection />
-          <FeaturedProducts />
-          <SpecialOffers />
+          <FeaturedProductsNew />
+          <SpecialOffersNew />
         </main>
         <Footer />
       </div>

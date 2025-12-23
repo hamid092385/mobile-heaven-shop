@@ -1,8 +1,16 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Search, ShoppingCart, Menu, X, User, Heart, Phone } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Search, ShoppingCart, Menu, X, User, Heart, Phone, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useCart } from "@/hooks/useCart";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navItems = [
   { label: "صفحه اصلی", path: "/" },
@@ -15,8 +23,15 @@ const navItems = [
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [cartCount] = useState(3);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { cartCount, isLoggedIn } = useCart();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full glass-card border-b border-border/50">
@@ -42,12 +57,12 @@ const Header = () => {
       <div className="container py-4">
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center neon-glow">
               <Phone className="h-6 w-6 text-primary-foreground" />
             </div>
             <span className="text-xl font-bold gradient-text">موبایل مارکت</span>
-          </div>
+          </Link>
 
           {/* Search Bar */}
           <div className="hidden md:flex flex-1 max-w-xl mx-8">
@@ -65,17 +80,42 @@ const Header = () => {
             <Button variant="ghost" size="icon" className="hidden md:flex hover:bg-secondary">
               <Heart className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="hidden md:flex hover:bg-secondary">
-              <User className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" className="relative hover:bg-secondary">
-              <ShoppingCart className="h-5 w-5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -left-1 w-5 h-5 bg-accent text-accent-foreground text-xs font-bold rounded-full flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
-            </Button>
+            
+            {isLoggedIn ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="hidden md:flex hover:bg-secondary">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem className="text-muted-foreground text-sm">
+                    {user?.email}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                    <LogOut className="h-4 w-4 ml-2" />
+                    خروج
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/auth">
+                <Button variant="ghost" size="icon" className="hidden md:flex hover:bg-secondary">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+            )}
+            
+            <Link to="/cart">
+              <Button variant="ghost" size="icon" className="relative hover:bg-secondary">
+                <ShoppingCart className="h-5 w-5" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -left-1 w-5 h-5 bg-accent text-accent-foreground text-xs font-bold rounded-full flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+              </Button>
+            </Link>
             <Button
               variant="ghost"
               size="icon"
@@ -137,6 +177,30 @@ const Header = () => {
                   </Link>
                 </li>
               ))}
+              {!isLoggedIn && (
+                <li>
+                  <Link 
+                    to="/auth" 
+                    className="block py-2 text-primary font-medium"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    ورود / ثبت‌نام
+                  </Link>
+                </li>
+              )}
+              {isLoggedIn && (
+                <li>
+                  <button 
+                    onClick={() => {
+                      handleSignOut();
+                      setIsMenuOpen(false);
+                    }}
+                    className="block py-2 text-destructive"
+                  >
+                    خروج از حساب
+                  </button>
+                </li>
+              )}
             </ul>
           </nav>
         </div>
