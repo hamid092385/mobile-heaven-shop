@@ -20,6 +20,42 @@ export interface Product {
   created_at: string;
 }
 
+export const useProductById = (id: string) => {
+  return useQuery({
+    queryKey: ["product", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data as Product | null;
+    },
+    enabled: !!id,
+  });
+};
+
+export const useSearchProducts = (query: string) => {
+  return useQuery({
+    queryKey: ["products", "search", query],
+    queryFn: async () => {
+      if (!query.trim()) return [];
+      
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .or(`name.ilike.%${query}%,name_en.ilike.%${query}%,brand.ilike.%${query}%`)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data as Product[];
+    },
+    enabled: !!query.trim(),
+  });
+};
+
 export const useProducts = (category?: string) => {
   return useQuery({
     queryKey: ["products", category],
