@@ -66,13 +66,23 @@ const Header = () => {
 
           {/* Search Bar */}
           <div className="hidden md:flex flex-1 max-w-xl mx-8">
-            <div className="relative w-full">
+            <form 
+              className="relative w-full"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const form = e.target as HTMLFormElement;
+                const input = form.querySelector('input') as HTMLInputElement;
+                if (input.value.trim()) {
+                  navigate(`/search?q=${encodeURIComponent(input.value.trim())}`);
+                }
+              }}
+            >
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 placeholder="جستجوی گوشی، برند یا مدل..."
                 className="w-full pr-10 bg-secondary/50 border-border/50 focus:border-primary focus:ring-primary/20 rounded-xl"
               />
-            </div>
+            </form>
           </div>
 
           {/* Actions */}
@@ -91,6 +101,9 @@ const Header = () => {
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem className="text-muted-foreground text-sm">
                     {user?.email}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/orders">سفارشات من</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                     <LogOut className="h-4 w-4 ml-2" />
@@ -129,13 +142,23 @@ const Header = () => {
 
         {/* Mobile Search */}
         <div className="md:hidden mt-4">
-          <div className="relative">
+          <form 
+            className="relative"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const form = e.target as HTMLFormElement;
+              const input = form.querySelector('input') as HTMLInputElement;
+              if (input.value.trim()) {
+                navigate(`/search?q=${encodeURIComponent(input.value.trim())}`);
+              }
+            }}
+          >
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               placeholder="جستجو..."
               className="w-full pr-10 bg-secondary/50 border-border/50 rounded-xl"
             />
-          </div>
+          </form>
         </div>
       </div>
 
