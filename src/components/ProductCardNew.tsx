@@ -2,7 +2,9 @@ import { Heart, ShoppingCart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Product } from "@/hooks/useProducts";
 import { formatPrice } from "@/lib/formatPrice";
+import { toPersianDate } from "@/lib/persianDate";
 import { useCart } from "@/hooks/useCart";
+import { useWishlist } from "@/hooks/useWishlist";
 import { Link } from "react-router-dom";
 
 interface ProductCardProps {
@@ -11,6 +13,7 @@ interface ProductCardProps {
 
 const ProductCardNew = ({ product }: ProductCardProps) => {
   const { addToCart, isLoggedIn } = useCart();
+  const { isInWishlist, toggleWishlist, isLoggedIn: wishlistLoggedIn } = useWishlist();
 
   const handleAddToCart = () => {
     addToCart.mutate({ productId: product.id });
@@ -37,10 +40,17 @@ const ProductCardNew = ({ product }: ProductCardProps) => {
 
           {/* Wishlist Button */}
           <button 
-            className="absolute top-3 left-3 z-10 w-9 h-9 rounded-full bg-background/80 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-primary-foreground"
-            onClick={(e) => e.preventDefault()}
+            className={`absolute top-3 left-3 z-10 w-9 h-9 rounded-full backdrop-blur flex items-center justify-center transition-all ${
+              isInWishlist(product.id) 
+                ? "bg-destructive text-white" 
+                : "bg-background/80 opacity-0 group-hover:opacity-100 hover:bg-primary hover:text-primary-foreground"
+            }`}
+            onClick={(e) => {
+              e.preventDefault();
+              if (wishlistLoggedIn) toggleWishlist(product.id);
+            }}
           >
-            <Heart className="h-4 w-4" />
+            <Heart className={`h-4 w-4 ${isInWishlist(product.id) ? "fill-current" : ""}`} />
           </button>
 
           {/* Product Image */}
@@ -67,35 +77,42 @@ const ProductCardNew = ({ product }: ProductCardProps) => {
 
           <h3 className="font-bold text-foreground line-clamp-2 min-h-[3rem]">{product.name}</h3>
 
-          <div className="flex items-end justify-between">
-            <div>
-              <div className="text-lg font-bold text-primary">{formatPrice(product.price)} تومان</div>
-              {product.original_price && (
-                <div className="text-sm text-muted-foreground line-through">
-                  {formatPrice(product.original_price)} تومان
-                </div>
+          <div className="space-y-2">
+            <div className="flex items-end justify-between">
+              <div>
+                <div className="text-lg font-bold text-primary">{formatPrice(product.price)} تومان</div>
+                {product.original_price && (
+                  <div className="text-sm text-muted-foreground line-through">
+                    {formatPrice(product.original_price)} تومان
+                  </div>
+                )}
+              </div>
+              {isLoggedIn ? (
+                <Button 
+                  size="icon" 
+                  className="btn-primary rounded-xl h-10 w-10"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleAddToCart();
+                  }}
+                  disabled={addToCart.isPending}
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                </Button>
+              ) : (
+                <Button 
+                  size="icon" 
+                  className="btn-primary rounded-xl h-10 w-10"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                </Button>
               )}
             </div>
-            {isLoggedIn ? (
-              <Button 
-                size="icon" 
-                className="btn-primary rounded-xl h-10 w-10"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleAddToCart();
-                }}
-                disabled={addToCart.isPending}
-              >
-                <ShoppingCart className="h-4 w-4" />
-              </Button>
-            ) : (
-              <Button 
-                size="icon" 
-                className="btn-primary rounded-xl h-10 w-10"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <ShoppingCart className="h-4 w-4" />
-              </Button>
+            {product.price_updated_at && (
+              <div className="text-xs text-muted-foreground">
+                آخرین بروزرسانی: {toPersianDate(product.price_updated_at)}
+              </div>
             )}
           </div>
         </div>

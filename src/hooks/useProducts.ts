@@ -18,6 +18,7 @@ export interface Product {
   image_url: string | null;
   specs: Record<string, unknown> | null;
   created_at: string;
+  price_updated_at: string | null;
 }
 
 export const useProductById = (id: string) => {
