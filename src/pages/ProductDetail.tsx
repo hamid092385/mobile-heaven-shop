@@ -1,18 +1,21 @@
 import { Helmet } from "react-helmet";
 import { useParams, Link } from "react-router-dom";
-import { ArrowRight, Heart, ShoppingCart, Star, Truck, Shield, RotateCcw } from "lucide-react";
+import { ArrowRight, Heart, ShoppingCart, Star, Truck, Shield, RotateCcw, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ProductReviews from "@/components/ProductReviews";
 import { Button } from "@/components/ui/button";
 import { useProductById } from "@/hooks/useProducts";
 import { useCart } from "@/hooks/useCart";
+import { useWishlist } from "@/hooks/useWishlist";
 import { formatPrice } from "@/lib/formatPrice";
-import { Loader2 } from "lucide-react";
+import { toPersianDate } from "@/lib/persianDate";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { data: product, isLoading } = useProductById(id || "");
   const { addToCart, isLoggedIn } = useCart();
+  const { isInWishlist, toggleWishlist, isLoggedIn: wishlistLoggedIn } = useWishlist();
 
   const handleAddToCart = () => {
     if (product) {
@@ -140,7 +143,7 @@ const ProductDetail = () => {
                     </div>
                   )}
                 </div>
-                <div className="flex items-center gap-2 mt-4">
+                <div className="flex items-center justify-between mt-4">
                   <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
                     product.in_stock 
                       ? "bg-green-500/10 text-green-500" 
@@ -148,6 +151,11 @@ const ProductDetail = () => {
                   }`}>
                     {product.in_stock ? "موجود در انبار" : "ناموجود"}
                   </span>
+                  {product.price_updated_at && (
+                    <span className="text-xs text-muted-foreground">
+                      آخرین بروزرسانی: {toPersianDate(product.price_updated_at)}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -171,8 +179,13 @@ const ProductDetail = () => {
                     </Button>
                   </Link>
                 )}
-                <Button size="lg" variant="outline" className="h-14 w-14">
-                  <Heart className="h-5 w-5" />
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className={`h-14 w-14 ${isInWishlist(product.id) ? "bg-destructive/10 text-destructive border-destructive" : ""}`}
+                  onClick={() => wishlistLoggedIn && toggleWishlist(product.id)}
+                >
+                  <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? "fill-current" : ""}`} />
                 </Button>
               </div>
 
@@ -213,6 +226,12 @@ const ProductDetail = () => {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Reviews Section */}
+          <div className="mt-16 pt-8 border-t border-border/50">
+            <h2 className="text-2xl font-bold text-foreground mb-8">نظرات و امتیازات</h2>
+            <ProductReviews productId={product.id} />
           </div>
         </main>
         <Footer />
