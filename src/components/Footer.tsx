@@ -1,4 +1,5 @@
-import { Phone, Mail, MapPin, Instagram, Send, MessageCircle } from "lucide-react";
+import { Phone, Mail, MapPin, Instagram, Send, MessageCircle, Settings } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -128,6 +129,10 @@ const Footer = () => {
             <div className="flex items-center gap-6">
               <a href="#" className="hover:text-primary transition-colors">شرایط استفاده</a>
               <a href="#" className="hover:text-primary transition-colors">حریم خصوصی</a>
+              <Link to="/admin" className="flex items-center gap-1 hover:text-primary transition-colors">
+                <Settings className="h-4 w-4" />
+                مدیریت
+              </Link>
             </div>
           </div>
         </div>
