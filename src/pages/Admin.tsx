@@ -1,13 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useNavigate, Link } from "react-router-dom";
-import { Loader2, ArrowRight, Save, Package } from "lucide-react";
+import { Loader2, ArrowRight, Save, Package, Lock } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAdmin } from "@/hooks/useAdmin";
-import { useAuth } from "@/hooks/useAuth";
 import { useProducts, Product } from "@/hooks/useProducts";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPrice } from "@/lib/formatPrice";
@@ -15,15 +13,35 @@ import { toPersianDate } from "@/lib/persianDate";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+const ADMIN_PASSWORD = "Aa110110";
+
 const Admin = () => {
   const navigate = useNavigate();
-  const { isAdmin, isLoading: adminLoading } = useAdmin();
-  const { isAuthenticated, loading: authLoading } = useAuth();
   const { data: products, isLoading: productsLoading } = useProducts();
   const queryClient = useQueryClient();
   
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newPrice, setNewPrice] = useState("");
+
+  useEffect(() => {
+    const savedAuth = sessionStorage.getItem("admin_auth");
+    if (savedAuth === "true") {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === ADMIN_PASSWORD) {
+      setIsAuthenticated(true);
+      sessionStorage.setItem("admin_auth", "true");
+      toast.success("ورود موفقیت‌آمیز");
+    } else {
+      toast.error("رمز عبور اشتباه است");
+    }
+  };
 
   const updatePrice = useMutation({
     mutationFn: async ({ productId, price }: { productId: string; price: number }) => {
@@ -54,45 +72,31 @@ const Admin = () => {
     updatePrice.mutate({ productId, price });
   };
 
-  if (authLoading || adminLoading) {
-    return (
-      <>
-        <Header />
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        </div>
-        <Footer />
-      </>
-    );
-  }
-
   if (!isAuthenticated) {
     return (
       <>
         <Header />
-        <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-          <Package className="h-16 w-16 text-muted-foreground" />
-          <h1 className="text-2xl font-bold text-foreground">برای دسترسی به پنل ادمین وارد شوید</h1>
-          <Link to="/auth">
-            <Button className="btn-primary">ورود به حساب</Button>
-          </Link>
-        </div>
-        <Footer />
-      </>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <>
-        <Header />
-        <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-          <Package className="h-16 w-16 text-destructive" />
-          <h1 className="text-2xl font-bold text-foreground">شما دسترسی ادمین ندارید</h1>
-          <p className="text-muted-foreground">فقط مدیران می‌توانند به این صفحه دسترسی داشته باشند</p>
-          <Link to="/">
-            <Button className="btn-primary">بازگشت به صفحه اصلی</Button>
-          </Link>
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 p-4">
+          <div className="w-full max-w-md p-8 rounded-2xl bg-card border border-border shadow-lg">
+            <div className="text-center mb-8">
+              <Lock className="h-16 w-16 text-primary mx-auto mb-4" />
+              <h1 className="text-2xl font-bold text-foreground">ورود به پنل مدیریت</h1>
+              <p className="text-muted-foreground mt-2">رمز عبور را وارد کنید</p>
+            </div>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="رمز عبور"
+                className="text-center"
+                autoFocus
+              />
+              <Button type="submit" className="w-full btn-primary">
+                ورود
+              </Button>
+            </form>
+          </div>
         </div>
         <Footer />
       </>
