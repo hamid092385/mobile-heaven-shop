@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useNavigate, Link } from "react-router-dom";
-import { Loader2, ArrowRight, Save, Package, Lock, LogOut, Plus, X } from "lucide-react";
+import { Loader2, ArrowRight, Save, Package, Lock, LogOut, Plus, X, Trash2, Key } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
-const ADMIN_PASSWORD = "Aa110110";
+const DEFAULT_PASSWORD = "Aa110110";
+const PASSWORD_STORAGE_KEY = "admin_password";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -32,6 +44,10 @@ const Admin = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newPrice, setNewPrice] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [newProduct, setNewProduct] = useState({
     name: "",
     name_en: "",
@@ -40,6 +56,10 @@ const Admin = () => {
     price: "",
     image_url: "",
   });
+
+  const getAdminPassword = () => {
+    return localStorage.getItem(PASSWORD_STORAGE_KEY) || DEFAULT_PASSWORD;
+  };
 
   useEffect(() => {
     const savedAuth = sessionStorage.getItem("admin_auth");
@@ -50,13 +70,39 @@ const Admin = () => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
+    if (password === getAdminPassword()) {
       setIsAuthenticated(true);
       sessionStorage.setItem("admin_auth", "true");
       toast.success("ورود موفقیت‌آمیز");
     } else {
       toast.error("رمز عبور اشتباه است");
     }
+  };
+
+  const handleChangePassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (currentPassword !== getAdminPassword()) {
+      toast.error("رمز عبور فعلی اشتباه است");
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      toast.error("رمز عبور جدید باید حداقل ۶ کاراکتر باشد");
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      toast.error("رمز عبور جدید و تکرار آن مطابقت ندارند");
+      return;
+    }
+    
+    localStorage.setItem(PASSWORD_STORAGE_KEY, newPassword);
+    toast.success("رمز عبور با موفقیت تغییر کرد");
+    setShowChangePassword(false);
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
   };
 
   const updatePrice = useMutation({
@@ -112,6 +158,24 @@ const Admin = () => {
         price: "",
         image_url: "",
       });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const deleteProduct = useMutation({
+    mutationFn: async (productId: string) => {
+      const { error } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", productId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success("محصول حذف شد");
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -179,12 +243,16 @@ const Admin = () => {
             <span className="text-foreground">پنل مدیریت</span>
           </div>
 
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <h1 className="text-3xl font-bold text-foreground">پنل مدیریت محصولات</h1>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button onClick={() => setShowAddForm(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
                 افزودن محصول
+              </Button>
+              <Button variant="outline" onClick={() => setShowChangePassword(true)} className="gap-2">
+                <Key className="h-4 w-4" />
+                تغییر رمز
               </Button>
               <Button variant="outline" onClick={handleLogout} className="gap-2">
                 <LogOut className="h-4 w-4" />
@@ -192,6 +260,39 @@ const Admin = () => {
               </Button>
             </div>
           </div>
+
+          {/* Change Password Form */}
+          {showChangePassword && (
+            <div className="mb-8 p-6 rounded-2xl bg-surface-light border border-border/50">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-foreground">تغییر رمز عبور</h2>
+                <Button variant="ghost" size="sm" onClick={() => setShowChangePassword(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
+                <Input
+                  type="password"
+                  placeholder="رمز عبور فعلی"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                />
+                <Input
+                  type="password"
+                  placeholder="رمز عبور جدید"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <Input
+                  type="password"
+                  placeholder="تکرار رمز عبور جدید"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <Button type="submit">ذخیره رمز جدید</Button>
+              </form>
+            </div>
+          )}
 
           {/* Add Product Form */}
           {showAddForm && (
@@ -324,6 +425,30 @@ const Admin = () => {
                         >
                           ویرایش قیمت
                         </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>آیا مطمئن هستید؟</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                این عمل قابل بازگشت نیست. محصول "{product.name}" برای همیشه حذف خواهد شد.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>انصراف</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteProduct.mutate(product.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                حذف
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </>
                     )}
                   </div>
