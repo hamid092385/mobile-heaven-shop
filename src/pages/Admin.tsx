@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, Navigate } from "react-router-dom";
-import { Loader2, ArrowRight, Save, Lock, LogOut, Plus, X, Trash2 } from "lucide-react";
+import { Loader2, ArrowRight, Save, Lock, LogOut, Plus, X, Trash2, Edit } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,29 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+
+interface EditProduct {
+  id: string;
+  name: string;
+  name_en: string;
+  brand: string;
+  category: string;
+  price: string;
+  original_price: string;
+  discount_percent: string;
+  image_url: string;
+  in_stock: boolean;
+  is_featured: boolean;
+  is_special_offer: boolean;
+}
 
 const Admin = () => {
   const { data: products, isLoading: productsLoading } = useProducts();
@@ -39,32 +62,59 @@ const Admin = () => {
   const { isAdmin, isLoading: adminLoading } = useAdmin();
   const { user, loading: authLoading, signOut } = useAuth();
   
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [newPrice, setNewPrice] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<EditProduct | null>(null);
   const [newProduct, setNewProduct] = useState({
     name: "",
     name_en: "",
     brand: "",
     category: "mobile",
     price: "",
+    original_price: "",
+    discount_percent: "",
     image_url: "",
+    in_stock: true,
+    is_featured: false,
+    is_special_offer: false,
   });
 
-  const updatePrice = useMutation({
-    mutationFn: async ({ productId, price }: { productId: string; price: number }) => {
+  const updateProduct = useMutation({
+    mutationFn: async (product: EditProduct) => {
+      const price = parseInt(product.price.replace(/,/g, ""));
+      const originalPrice = product.original_price ? parseInt(product.original_price.replace(/,/g, "")) : null;
+      const discountPercent = product.discount_percent ? parseInt(product.discount_percent) : null;
+      
+      if (isNaN(price) || price <= 0) {
+        throw new Error("لطفاً قیمت معتبر وارد کنید");
+      }
+      if (!product.name || !product.brand) {
+        throw new Error("لطفاً نام و برند محصول را وارد کنید");
+      }
+      
       const { error } = await supabase
         .from("products")
-        .update({ price, price_updated_at: new Date().toISOString() })
-        .eq("id", productId);
+        .update({
+          name: product.name,
+          name_en: product.name_en || null,
+          brand: product.brand,
+          category: product.category,
+          price: price,
+          original_price: originalPrice,
+          discount_percent: discountPercent,
+          image_url: product.image_url || null,
+          in_stock: product.in_stock,
+          is_featured: product.is_featured,
+          is_special_offer: product.is_special_offer,
+          price_updated_at: new Date().toISOString(),
+        })
+        .eq("id", product.id);
       
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      toast.success("قیمت بروزرسانی شد");
-      setEditingId(null);
-      setNewPrice("");
+      toast.success("محصول بروزرسانی شد");
+      setEditingProduct(null);
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -74,6 +124,9 @@ const Admin = () => {
   const addProduct = useMutation({
     mutationFn: async () => {
       const price = parseInt(newProduct.price.replace(/,/g, ""));
+      const originalPrice = newProduct.original_price ? parseInt(newProduct.original_price.replace(/,/g, "")) : null;
+      const discountPercent = newProduct.discount_percent ? parseInt(newProduct.discount_percent) : null;
+      
       if (isNaN(price) || price <= 0) {
         throw new Error("لطفاً قیمت معتبر وارد کنید");
       }
@@ -87,7 +140,12 @@ const Admin = () => {
         brand: newProduct.brand,
         category: newProduct.category,
         price: price,
+        original_price: originalPrice,
+        discount_percent: discountPercent,
         image_url: newProduct.image_url || null,
+        in_stock: newProduct.in_stock,
+        is_featured: newProduct.is_featured,
+        is_special_offer: newProduct.is_special_offer,
       });
       
       if (error) throw error;
@@ -102,7 +160,12 @@ const Admin = () => {
         brand: "",
         category: "mobile",
         price: "",
+        original_price: "",
+        discount_percent: "",
         image_url: "",
+        in_stock: true,
+        is_featured: false,
+        is_special_offer: false,
       });
     },
     onError: (error: Error) => {
@@ -133,13 +196,21 @@ const Admin = () => {
     toast.success("از پنل مدیریت خارج شدید");
   };
 
-  const handleSavePrice = (productId: string) => {
-    const price = parseInt(newPrice.replace(/,/g, ""));
-    if (isNaN(price) || price <= 0) {
-      toast.error("لطفاً قیمت معتبر وارد کنید");
-      return;
-    }
-    updatePrice.mutate({ productId, price });
+  const openEditDialog = (product: Product) => {
+    setEditingProduct({
+      id: product.id,
+      name: product.name,
+      name_en: product.name_en || "",
+      brand: product.brand,
+      category: product.category,
+      price: String(product.price),
+      original_price: product.original_price ? String(product.original_price) : "",
+      discount_percent: product.discount_percent ? String(product.discount_percent) : "",
+      image_url: product.image_url || "",
+      in_stock: product.in_stock ?? true,
+      is_featured: product.is_featured ?? false,
+      is_special_offer: product.is_special_offer ?? false,
+    });
   };
 
   // Loading state
@@ -191,6 +262,110 @@ const Admin = () => {
     );
   }
 
+  const ProductForm = ({ 
+    data, 
+    onChange, 
+    onSubmit, 
+    isPending,
+    submitLabel 
+  }: { 
+    data: typeof newProduct;
+    onChange: (data: typeof newProduct) => void;
+    onSubmit: () => void;
+    isPending: boolean;
+    submitLabel: string;
+  }) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Input
+        placeholder="نام محصول (فارسی)"
+        value={data.name}
+        onChange={(e) => onChange({ ...data, name: e.target.value })}
+      />
+      <Input
+        placeholder="نام محصول (انگلیسی)"
+        value={data.name_en}
+        onChange={(e) => onChange({ ...data, name_en: e.target.value })}
+        dir="ltr"
+      />
+      <Input
+        placeholder="برند"
+        value={data.brand}
+        onChange={(e) => onChange({ ...data, brand: e.target.value })}
+      />
+      <Select
+        value={data.category}
+        onValueChange={(value) => onChange({ ...data, category: value })}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="دسته‌بندی" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="mobile">موبایل</SelectItem>
+          <SelectItem value="tablet">تبلت</SelectItem>
+          <SelectItem value="accessory">لوازم جانبی</SelectItem>
+        </SelectContent>
+      </Select>
+      <Input
+        placeholder="قیمت (تومان)"
+        value={data.price}
+        onChange={(e) => onChange({ ...data, price: e.target.value })}
+        dir="ltr"
+      />
+      <Input
+        placeholder="قیمت اصلی (تومان) - اختیاری"
+        value={data.original_price}
+        onChange={(e) => onChange({ ...data, original_price: e.target.value })}
+        dir="ltr"
+      />
+      <Input
+        placeholder="درصد تخفیف - اختیاری"
+        value={data.discount_percent}
+        onChange={(e) => onChange({ ...data, discount_percent: e.target.value })}
+        dir="ltr"
+        type="number"
+        min="0"
+        max="100"
+      />
+      <Input
+        placeholder="لینک تصویر"
+        value={data.image_url}
+        onChange={(e) => onChange({ ...data, image_url: e.target.value })}
+        dir="ltr"
+      />
+      <div className="md:col-span-2 flex flex-wrap gap-6">
+        <div className="flex items-center space-x-2 space-x-reverse">
+          <Checkbox
+            id="in_stock"
+            checked={data.in_stock}
+            onCheckedChange={(checked) => onChange({ ...data, in_stock: !!checked })}
+          />
+          <Label htmlFor="in_stock">موجود در انبار</Label>
+        </div>
+        <div className="flex items-center space-x-2 space-x-reverse">
+          <Checkbox
+            id="is_featured"
+            checked={data.is_featured}
+            onCheckedChange={(checked) => onChange({ ...data, is_featured: !!checked })}
+          />
+          <Label htmlFor="is_featured">محصول ویژه</Label>
+        </div>
+        <div className="flex items-center space-x-2 space-x-reverse">
+          <Checkbox
+            id="is_special_offer"
+            checked={data.is_special_offer}
+            onCheckedChange={(checked) => onChange({ ...data, is_special_offer: !!checked })}
+          />
+          <Label htmlFor="is_special_offer">پیشنهاد شگفت‌انگیز</Label>
+        </div>
+      </div>
+      <div className="md:col-span-2 flex justify-end">
+        <Button onClick={onSubmit} disabled={isPending}>
+          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : submitLabel}
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <Helmet>
@@ -234,56 +409,33 @@ const Admin = () => {
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  placeholder="نام محصول (فارسی)"
-                  value={newProduct.name}
-                  onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                />
-                <Input
-                  placeholder="نام محصول (انگلیسی)"
-                  value={newProduct.name_en}
-                  onChange={(e) => setNewProduct({ ...newProduct, name_en: e.target.value })}
-                  dir="ltr"
-                />
-                <Input
-                  placeholder="برند"
-                  value={newProduct.brand}
-                  onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })}
-                />
-                <Select
-                  value={newProduct.category}
-                  onValueChange={(value) => setNewProduct({ ...newProduct, category: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="دسته‌بندی" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="mobile">موبایل</SelectItem>
-                    <SelectItem value="tablet">تبلت</SelectItem>
-                    <SelectItem value="accessory">لوازم جانبی</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input
-                  placeholder="قیمت (تومان)"
-                  value={newProduct.price}
-                  onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                  dir="ltr"
-                />
-                <Input
-                  placeholder="لینک تصویر"
-                  value={newProduct.image_url}
-                  onChange={(e) => setNewProduct({ ...newProduct, image_url: e.target.value })}
-                  dir="ltr"
-                />
-              </div>
-              <div className="mt-4 flex justify-end">
-                <Button onClick={() => addProduct.mutate()} disabled={addProduct.isPending}>
-                  {addProduct.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "ذخیره محصول"}
-                </Button>
-              </div>
+              <ProductForm
+                data={newProduct}
+                onChange={setNewProduct}
+                onSubmit={() => addProduct.mutate()}
+                isPending={addProduct.isPending}
+                submitLabel="ذخیره محصول"
+              />
             </div>
           )}
+
+          {/* Edit Product Dialog */}
+          <Dialog open={!!editingProduct} onOpenChange={(open) => !open && setEditingProduct(null)}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>ویرایش محصول</DialogTitle>
+              </DialogHeader>
+              {editingProduct && (
+                <ProductForm
+                  data={editingProduct}
+                  onChange={(data) => setEditingProduct(data as EditProduct)}
+                  onSubmit={() => updateProduct.mutate(editingProduct)}
+                  isPending={updateProduct.isPending}
+                  submitLabel="ذخیره تغییرات"
+                />
+              )}
+            </DialogContent>
+          </Dialog>
 
           {productsLoading ? (
             <div className="flex justify-center py-12">
@@ -304,7 +456,21 @@ const Admin = () => {
                   
                   <div className="flex-1">
                     <h3 className="font-bold text-foreground">{product.name}</h3>
-                    <p className="text-sm text-muted-foreground">{product.brand}</p>
+                    <p className="text-sm text-muted-foreground">{product.brand} • {product.category}</p>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {product.in_stock === false && (
+                        <span className="text-xs px-2 py-0.5 bg-destructive/10 text-destructive rounded">ناموجود</span>
+                      )}
+                      {product.is_featured && (
+                        <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded">ویژه</span>
+                      )}
+                      {product.is_special_offer && (
+                        <span className="text-xs px-2 py-0.5 bg-accent/10 text-accent-foreground rounded">پیشنهاد</span>
+                      )}
+                      {product.discount_percent && product.discount_percent > 0 && (
+                        <span className="text-xs px-2 py-0.5 bg-green-500/10 text-green-600 rounded">%{product.discount_percent} تخفیف</span>
+                      )}
+                    </div>
                     {product.price_updated_at && (
                       <p className="text-xs text-muted-foreground mt-1">
                         آخرین بروزرسانی: {toPersianDate(product.price_updated_at)}
@@ -312,76 +478,50 @@ const Admin = () => {
                     )}
                   </div>
                   
-                  <div className="flex items-center gap-4">
-                    {editingId === product.id ? (
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="text"
-                          value={newPrice}
-                          onChange={(e) => setNewPrice(e.target.value)}
-                          placeholder="قیمت جدید"
-                          className="w-32"
-                          dir="ltr"
-                        />
-                        <Button
-                          size="sm"
-                          onClick={() => handleSavePrice(product.id)}
-                          disabled={updatePrice.isPending}
-                        >
-                          <Save className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setEditingId(null);
-                            setNewPrice("");
-                          }}
-                        >
-                          انصراف
-                        </Button>
+                  <div className="flex items-center gap-3">
+                    <div className="text-left">
+                      <div className="text-lg font-bold text-primary">
+                        {formatPrice(product.price)} تومان
                       </div>
-                    ) : (
-                      <>
-                        <div className="text-lg font-bold text-primary">
-                          {formatPrice(product.price)} تومان
+                      {product.original_price && (
+                        <div className="text-sm text-muted-foreground line-through">
+                          {formatPrice(product.original_price)} تومان
                         </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setEditingId(product.id);
-                            setNewPrice(String(product.price));
-                          }}
-                        >
-                          ویرایش قیمت
+                      )}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => openEditDialog(product)}
+                      className="gap-1"
+                    >
+                      <Edit className="h-4 w-4" />
+                      ویرایش
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="sm" variant="destructive">
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button size="sm" variant="destructive">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>آیا مطمئن هستید؟</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                این عمل قابل بازگشت نیست. محصول "{product.name}" برای همیشه حذف خواهد شد.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>انصراف</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => deleteProduct.mutate(product.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                حذف
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </>
-                    )}
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>آیا مطمئن هستید؟</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            این عمل قابل بازگشت نیست. محصول "{product.name}" برای همیشه حذف خواهد شد.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>انصراف</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteProduct.mutate(product.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            حذف
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               ))}
