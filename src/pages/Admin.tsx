@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Helmet } from "react-helmet";
-import { useNavigate, Link } from "react-router-dom";
-import { Loader2, ArrowRight, Save, Package, Lock, LogOut, Plus, X, Trash2, Key } from "lucide-react";
+import { Link, Navigate } from "react-router-dom";
+import { Loader2, ArrowRight, Save, Lock, LogOut, Plus, X, Trash2 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import { formatPrice } from "@/lib/formatPrice";
 import { toPersianDate } from "@/lib/persianDate";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAdmin } from "@/hooks/useAdmin";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Select,
   SelectContent,
@@ -31,23 +33,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-const DEFAULT_PASSWORD = "Aa110110";
-const PASSWORD_STORAGE_KEY = "admin_password";
-
 const Admin = () => {
-  const navigate = useNavigate();
   const { data: products, isLoading: productsLoading } = useProducts();
   const queryClient = useQueryClient();
+  const { isAdmin, isLoading: adminLoading } = useAdmin();
+  const { user, loading: authLoading, signOut } = useAuth();
   
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newPrice, setNewPrice] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
-  const [showChangePassword, setShowChangePassword] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [newProduct, setNewProduct] = useState({
     name: "",
     name_en: "",
@@ -56,54 +50,6 @@ const Admin = () => {
     price: "",
     image_url: "",
   });
-
-  const getAdminPassword = () => {
-    return localStorage.getItem(PASSWORD_STORAGE_KEY) || DEFAULT_PASSWORD;
-  };
-
-  useEffect(() => {
-    const savedAuth = sessionStorage.getItem("admin_auth");
-    if (savedAuth === "true") {
-      setIsAuthenticated(true);
-    }
-  }, []);
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === getAdminPassword()) {
-      setIsAuthenticated(true);
-      sessionStorage.setItem("admin_auth", "true");
-      toast.success("ورود موفقیت‌آمیز");
-    } else {
-      toast.error("رمز عبور اشتباه است");
-    }
-  };
-
-  const handleChangePassword = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (currentPassword !== getAdminPassword()) {
-      toast.error("رمز عبور فعلی اشتباه است");
-      return;
-    }
-    
-    if (newPassword.length < 6) {
-      toast.error("رمز عبور جدید باید حداقل ۶ کاراکتر باشد");
-      return;
-    }
-    
-    if (newPassword !== confirmPassword) {
-      toast.error("رمز عبور جدید و تکرار آن مطابقت ندارند");
-      return;
-    }
-    
-    localStorage.setItem(PASSWORD_STORAGE_KEY, newPassword);
-    toast.success("رمز عبور با موفقیت تغییر کرد");
-    setShowChangePassword(false);
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-  };
 
   const updatePrice = useMutation({
     mutationFn: async ({ productId, price }: { productId: string; price: number }) => {
@@ -182,9 +128,8 @@ const Admin = () => {
     },
   });
 
-  const handleLogout = () => {
-    sessionStorage.removeItem("admin_auth");
-    setIsAuthenticated(false);
+  const handleLogout = async () => {
+    await signOut();
     toast.success("از پنل مدیریت خارج شدید");
   };
 
@@ -197,30 +142,48 @@ const Admin = () => {
     updatePrice.mutate({ productId, price });
   };
 
-  if (!isAuthenticated) {
+  // Loading state
+  if (authLoading || adminLoading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  // Not logged in - redirect to auth page
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Not admin - show unauthorized message
+  if (!isAdmin) {
     return (
       <>
         <Header />
         <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 p-4">
-          <div className="w-full max-w-md p-8 rounded-2xl bg-card border border-border shadow-lg">
-            <div className="text-center mb-8">
-              <Lock className="h-16 w-16 text-primary mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-foreground">ورود به پنل مدیریت</h1>
-              <p className="text-muted-foreground mt-2">رمز عبور را وارد کنید</p>
-            </div>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="رمز عبور"
-                className="text-center"
-                autoFocus
-              />
-              <Button type="submit" className="w-full btn-primary">
-                ورود
+          <div className="w-full max-w-md p-8 rounded-2xl bg-card border border-border shadow-lg text-center">
+            <Lock className="h-16 w-16 text-destructive mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-foreground mb-2">دسترسی محدود</h1>
+            <p className="text-muted-foreground mb-6">
+              شما دسترسی ادمین ندارید. این صفحه فقط برای مدیران سایت قابل دسترسی است.
+            </p>
+            <p className="text-sm text-muted-foreground mb-4">
+              ایمیل فعلی: {user.email}
+            </p>
+            <div className="flex gap-2 justify-center">
+              <Button variant="outline" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 ml-2" />
+                خروج از حساب
               </Button>
-            </form>
+              <Link to="/">
+                <Button>بازگشت به صفحه اصلی</Button>
+              </Link>
+            </div>
           </div>
         </div>
         <Footer />
@@ -244,15 +207,16 @@ const Admin = () => {
           </div>
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <h1 className="text-3xl font-bold text-foreground">پنل مدیریت محصولات</h1>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">پنل مدیریت محصولات</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                وارد شده به عنوان: {user.email}
+              </p>
+            </div>
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => setShowAddForm(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
                 افزودن محصول
-              </Button>
-              <Button variant="outline" onClick={() => setShowChangePassword(true)} className="gap-2">
-                <Key className="h-4 w-4" />
-                تغییر رمز
               </Button>
               <Button variant="outline" onClick={handleLogout} className="gap-2">
                 <LogOut className="h-4 w-4" />
@@ -260,39 +224,6 @@ const Admin = () => {
               </Button>
             </div>
           </div>
-
-          {/* Change Password Form */}
-          {showChangePassword && (
-            <div className="mb-8 p-6 rounded-2xl bg-surface-light border border-border/50">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-foreground">تغییر رمز عبور</h2>
-                <Button variant="ghost" size="sm" onClick={() => setShowChangePassword(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
-                <Input
-                  type="password"
-                  placeholder="رمز عبور فعلی"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                />
-                <Input
-                  type="password"
-                  placeholder="رمز عبور جدید"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-                <Input
-                  type="password"
-                  placeholder="تکرار رمز عبور جدید"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-                <Button type="submit">ذخیره رمز جدید</Button>
-              </form>
-            </div>
-          )}
 
           {/* Add Product Form */}
           {showAddForm && (
