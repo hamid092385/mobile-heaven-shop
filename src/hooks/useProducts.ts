@@ -38,16 +38,27 @@ export const useProductById = (id: string) => {
   });
 };
 
+// Sanitize input for SQL ILIKE queries - escape special characters
+const sanitizeSearchQuery = (input: string): string => {
+  return input
+    .trim()
+    .slice(0, 100) // Limit length to prevent DoS
+    .replace(/[%_\\]/g, '\\$&'); // Escape SQL wildcards
+};
+
 export const useSearchProducts = (query: string) => {
   return useQuery({
     queryKey: ["products", "search", query],
     queryFn: async () => {
       if (!query.trim()) return [];
       
+      // Sanitize the query to prevent SQL injection
+      const sanitized = sanitizeSearchQuery(query);
+      
       const { data, error } = await supabase
         .from("products")
         .select("*")
-        .or(`name.ilike.%${query}%,name_en.ilike.%${query}%,brand.ilike.%${query}%`)
+        .or(`name.ilike.%${sanitized}%,name_en.ilike.%${sanitized}%,brand.ilike.%${sanitized}%`)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
