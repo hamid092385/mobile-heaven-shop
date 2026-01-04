@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import {
   Select,
   SelectContent,
@@ -61,6 +62,7 @@ const Admin = () => {
   const queryClient = useQueryClient();
   const { isAdmin, isLoading: adminLoading } = useAdmin();
   const { user, loading: authLoading, signOut } = useAuth();
+  const { profile } = useProfile();
   
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<EditProduct | null>(null);
@@ -384,9 +386,21 @@ const Admin = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-bold text-foreground">پنل مدیریت محصولات</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                وارد شده به عنوان: {user.email}
-              </p>
+              <div className="mt-2 p-3 rounded-xl bg-primary/10 border border-primary/20">
+                <p className="text-sm text-foreground font-medium">
+                  👤 {profile?.full_name || user.email}
+                </p>
+                {profile?.phone && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    📱 {profile.phone}
+                  </p>
+                )}
+                {profile?.personnel_code && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    🔢 کد پرسنلی: {profile.personnel_code}
+                  </p>
+                )}
+              </div>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => setShowAddForm(true)} className="gap-2">
