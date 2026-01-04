@@ -9,6 +9,7 @@ export interface Profile {
   full_name: string | null;
   phone: string | null;
   address: string | null;
+  personnel_code: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -35,7 +36,7 @@ export const useProfile = () => {
   });
 
   const updateProfile = useMutation({
-    mutationFn: async (updates: Partial<Pick<Profile, 'full_name' | 'phone' | 'address'>>) => {
+    mutationFn: async (updates: Partial<Pick<Profile, 'full_name' | 'phone' | 'address' | 'personnel_code'>>) => {
       if (!user) throw new Error("لطفاً وارد شوید");
       
       const { error } = await supabase
