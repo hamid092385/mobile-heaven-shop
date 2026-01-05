@@ -22,6 +22,7 @@ import Wishlist from "./pages/Wishlist";
 import Admin from "./pages/Admin";
 import Compare from "./pages/Compare";
 import Search from "./pages/Search";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/admin" element={<Admin />} />
             <Route path="/compare" element={<Compare />} />
             <Route path="/search" element={<Search />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
