@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 
 const emailSchema = z.string().email("ایمیل معتبر نیست");
@@ -19,11 +20,41 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [forgotPassword, setForgotPassword] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      emailSchema.parse(email);
+    } catch {
+      setErrors({ email: "ایمیل معتبر نیست" });
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) {
+        toast({ title: error.message, variant: "destructive" });
+      } else {
+        setResetEmailSent(true);
+        toast({ title: "لینک بازنشانی به ایمیل شما ارسال شد" });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -81,6 +112,102 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  // Forgot password form
+  if (forgotPassword) {
+    return (
+      <>
+        <Helmet>
+          <title>فراموشی رمز عبور | موبایل مارکت</title>
+        </Helmet>
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <div className="w-full max-w-md">
+            <Link to="/" className="flex items-center justify-center gap-2 mb-8">
+              <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center neon-glow">
+                <Phone className="h-7 w-7 text-primary-foreground" />
+              </div>
+              <span className="text-2xl font-bold gradient-text">موبایل مارکت</span>
+            </Link>
+
+            <div className="glass-card rounded-2xl p-8">
+              {resetEmailSent ? (
+                <div className="text-center">
+                  <Mail className="h-16 w-16 text-primary mx-auto mb-4" />
+                  <h1 className="text-2xl font-bold mb-2">ایمیل ارسال شد!</h1>
+                  <p className="text-muted-foreground mb-4">
+                    لینک بازنشانی رمز عبور به ایمیل شما ارسال شد. لطفاً صندوق ورودی خود را بررسی کنید.
+                  </p>
+                  <Button
+                    onClick={() => {
+                      setForgotPassword(false);
+                      setResetEmailSent(false);
+                    }}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    بازگشت به ورود
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <h1 className="text-2xl font-bold text-center mb-2">فراموشی رمز عبور</h1>
+                  <p className="text-muted-foreground text-center mb-6">
+                    ایمیل خود را وارد کنید تا لینک بازنشانی برایتان ارسال شود
+                  </p>
+
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="resetEmail">ایمیل</Label>
+                      <div className="relative">
+                        <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input
+                          id="resetEmail"
+                          type="email"
+                          placeholder="email@example.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className={`pr-10 ${errors.email ? "border-destructive" : ""}`}
+                          dir="ltr"
+                        />
+                      </div>
+                      {errors.email && (
+                        <p className="text-sm text-destructive">{errors.email}</p>
+                      )}
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="w-full btn-primary"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        "ارسال لینک بازنشانی"
+                      )}
+                    </Button>
+                  </form>
+
+                  <div className="mt-6 text-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForgotPassword(false);
+                        setErrors({});
+                      }}
+                      className="text-primary hover:underline"
+                    >
+                      بازگشت به ورود
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -175,6 +302,18 @@ const Auth = () => {
                   <p className="text-sm text-destructive">{errors.password}</p>
                 )}
               </div>
+
+              {isLogin && (
+                <div className="text-left">
+                  <button
+                    type="button"
+                    onClick={() => setForgotPassword(true)}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    فراموشی رمز عبور؟
+                  </button>
+                </div>
+              )}
 
               <Button
                 type="submit"

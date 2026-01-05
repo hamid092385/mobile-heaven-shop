@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, Navigate } from "react-router-dom";
-import { Loader2, ArrowRight, Save, Lock, LogOut, Plus, X, Trash2, Edit } from "lucide-react";
+import { Loader2, ArrowRight, Save, Lock, LogOut, Plus, X, Trash2, Edit, Shield, CheckCircle, XCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -66,6 +66,12 @@ const Admin = () => {
   
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<EditProduct | null>(null);
+  const [securityTesting, setSecurityTesting] = useState(false);
+  const [securityResults, setSecurityResults] = useState<{show: boolean; passed: boolean; tests: {name: string; passed: boolean; message: string}[]}>({
+    show: false,
+    passed: false,
+    tests: []
+  });
   const [newProduct, setNewProduct] = useState({
     name: "",
     name_en: "",
@@ -196,6 +202,89 @@ const Admin = () => {
   const handleLogout = async () => {
     await signOut();
     toast.success("از پنل مدیریت خارج شدید");
+  };
+
+  const handleSecurityTest = async () => {
+    setSecurityTesting(true);
+    const tests: {name: string; passed: boolean; message: string}[] = [];
+
+    try {
+      // Test 1: Verify admin token exists
+      const { data: { session } } = await supabase.auth.getSession();
+      tests.push({
+        name: "توکن معتبر ادمین",
+        passed: !!session?.access_token,
+        message: session?.access_token ? "توکن JWT معتبر است" : "توکن یافت نشد"
+      });
+
+      // Test 2: Verify admin role
+      if (session?.user) {
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .eq('role', 'admin')
+          .single();
+        
+        tests.push({
+          name: "نقش ادمین در دیتابیس",
+          passed: !!roleData,
+          message: roleData ? "نقش admin تأیید شد" : "نقش admin یافت نشد"
+        });
+      }
+
+      // Test 3: Can read products (admin access)
+      const { error: readError } = await supabase
+        .from('products')
+        .select('id')
+        .limit(1);
+      
+      tests.push({
+        name: "دسترسی خواندن محصولات",
+        passed: !readError,
+        message: !readError ? "دسترسی خواندن تأیید شد" : readError.message
+      });
+
+      // Test 4: Can update products (admin access)
+      if (products && products.length > 0) {
+        const testProduct = products[0];
+        const { error: updateError } = await supabase
+          .from('products')
+          .update({ name: testProduct.name })
+          .eq('id', testProduct.id);
+        
+        tests.push({
+          name: "دسترسی ویرایش محصولات",
+          passed: !updateError,
+          message: !updateError ? "دسترسی ویرایش تأیید شد" : updateError.message
+        });
+      }
+
+      // Test 5: Can read orders (admin access)
+      const { error: ordersError } = await supabase
+        .from('orders')
+        .select('id')
+        .limit(1);
+      
+      tests.push({
+        name: "دسترسی به سفارشات مشتریان",
+        passed: !ordersError,
+        message: !ordersError ? "دسترسی به سفارشات تأیید شد" : ordersError.message
+      });
+
+      const allPassed = tests.every(t => t.passed);
+      setSecurityResults({ show: true, passed: allPassed, tests });
+      
+      if (allPassed) {
+        toast.success("همه تست‌های امنیتی موفق بودند!");
+      } else {
+        toast.error("برخی تست‌ها ناموفق بودند");
+      }
+    } catch (error) {
+      toast.error("خطا در اجرای تست امنیتی");
+    } finally {
+      setSecurityTesting(false);
+    }
   };
 
   const openEditDialog = (product: Product) => {
@@ -407,6 +496,15 @@ const Admin = () => {
                 <Plus className="h-4 w-4" />
                 افزودن محصول
               </Button>
+              <Button 
+                variant="secondary" 
+                onClick={handleSecurityTest} 
+                className="gap-2"
+                disabled={securityTesting}
+              >
+                <Shield className="h-4 w-4" />
+                {securityTesting ? "در حال تست..." : "تست نهایی امنیت"}
+              </Button>
               <Button variant="outline" onClick={handleLogout} className="gap-2">
                 <LogOut className="h-4 w-4" />
                 خروج
@@ -448,6 +546,45 @@ const Admin = () => {
                   submitLabel="ذخیره تغییرات"
                 />
               )}
+            </DialogContent>
+          </Dialog>
+
+          {/* Security Test Results Dialog */}
+          <Dialog open={securityResults.show} onOpenChange={(open) => !open && setSecurityResults({...securityResults, show: false})}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  {securityResults.passed ? (
+                    <CheckCircle className="h-6 w-6 text-green-500" />
+                  ) : (
+                    <XCircle className="h-6 w-6 text-destructive" />
+                  )}
+                  نتیجه تست امنیت
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3 py-4">
+                {securityResults.tests.map((test, index) => (
+                  <div 
+                    key={index} 
+                    className={`p-3 rounded-lg border ${test.passed ? 'bg-green-500/10 border-green-500/30' : 'bg-destructive/10 border-destructive/30'}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {test.passed ? (
+                        <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+                      )}
+                      <span className="font-medium text-sm">{test.name}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 mr-6">{test.message}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="text-center">
+                <Button onClick={() => setSecurityResults({...securityResults, show: false})}>
+                  بستن
+                </Button>
+              </div>
             </DialogContent>
           </Dialog>
 
