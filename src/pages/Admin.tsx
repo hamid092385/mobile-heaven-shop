@@ -492,6 +492,11 @@ const Admin = () => {
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
+              <Link to="/admin/dashboard">
+                <Button variant="default" className="gap-2 bg-green-600 hover:bg-green-700">
+                  📊 داشبورد سفارشات
+                </Button>
+              </Link>
               <Button onClick={() => setShowAddForm(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
                 افزودن محصول

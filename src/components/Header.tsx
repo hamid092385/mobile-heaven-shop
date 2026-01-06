@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Search, ShoppingCart, Menu, X, User, Heart, Phone, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import OrderTrackingModal from "./OrderTrackingModal";
 
 const navItems = [
   { label: "صفحه اصلی", path: "/" },
@@ -46,9 +47,7 @@ const Header = () => {
             <span>ارسال رایگان برای خریدهای بالای ۲ میلیون تومان</span>
           </div>
           <div className="flex items-center gap-4">
-            <button className="text-muted-foreground hover:text-primary transition-colors">
-              پیگیری سفارش
-            </button>
+            <OrderTrackingModal />
           </div>
         </div>
       </div>
