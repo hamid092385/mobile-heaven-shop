@@ -20,6 +20,7 @@ import Orders from "./pages/Orders";
 import Profile from "./pages/Profile";
 import Wishlist from "./pages/Wishlist";
 import Admin from "./pages/Admin";
+import AdminDashboard from "./pages/AdminDashboard";
 import Compare from "./pages/Compare";
 import Search from "./pages/Search";
 import ResetPassword from "./pages/ResetPassword";
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/compare" element={<Compare />} />
             <Route path="/search" element={<Search />} />
             <Route path="/reset-password" element={<ResetPassword />} />

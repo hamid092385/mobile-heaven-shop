@@ -97,6 +97,7 @@ export type Database = {
           shipping_address: string
           status: string
           total_amount: number
+          tracking_code: string | null
           user_id: string
         }
         Insert: {
@@ -107,6 +108,7 @@ export type Database = {
           shipping_address: string
           status?: string
           total_amount: number
+          tracking_code?: string | null
           user_id: string
         }
         Update: {
@@ -117,6 +119,7 @@ export type Database = {
           shipping_address?: string
           status?: string
           total_amount?: number
+          tracking_code?: string | null
           user_id?: string
         }
         Relationships: []

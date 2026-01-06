@@ -112,11 +112,14 @@ const Checkout = () => {
 
     setLoading(true);
 
-    // Simulate payment processing
+    // Simulate ZarinPal Sandbox payment processing
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     try {
-      // Create order
+      // Generate tracking code
+      const newTrackingCode = generateTrackingNumber();
+
+      // Create order with tracking code
       const { data: order, error: orderError } = await supabase
         .from("orders")
         .insert({
@@ -126,6 +129,7 @@ const Checkout = () => {
           shipping_address: formData.address,
           notes: formData.notes || null,
           status: "paid",
+          tracking_code: newTrackingCode,
         })
         .select()
         .single();
@@ -149,7 +153,7 @@ const Checkout = () => {
       // Clear cart
       await clearCart.mutateAsync();
 
-      setTrackingNumber(generateTrackingNumber());
+      setTrackingNumber(newTrackingCode);
       setOrderComplete(true);
       toast({ title: "پرداخت با موفقیت انجام شد" });
     } catch (error) {
