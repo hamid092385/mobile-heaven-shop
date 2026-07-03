@@ -126,11 +126,11 @@ export type Database = {
       }
       products: {
         Row: {
+          amazon_asin: string | null
           auto_sync: boolean
           brand: string
           category: string
           created_at: string
-          digikala_id: string | null
           discount_percent: number | null
           id: string
           image_url: string | null
@@ -147,11 +147,11 @@ export type Database = {
           specs: Json | null
         }
         Insert: {
+          amazon_asin?: string | null
           auto_sync?: boolean
           brand: string
           category: string
           created_at?: string
-          digikala_id?: string | null
           discount_percent?: number | null
           id?: string
           image_url?: string | null
@@ -168,11 +168,11 @@ export type Database = {
           specs?: Json | null
         }
         Update: {
+          amazon_asin?: string | null
           auto_sync?: boolean
           brand?: string
           category?: string
           created_at?: string
-          digikala_id?: string | null
           discount_percent?: number | null
           id?: string
           image_url?: string | null
