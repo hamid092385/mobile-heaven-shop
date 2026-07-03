@@ -160,7 +160,7 @@ const Admin = () => {
         in_stock: newProduct.in_stock,
         is_featured: newProduct.is_featured,
         is_special_offer: newProduct.is_special_offer,
-        digikala_id: newProduct.digikala_id || null,
+        amazon_asin: newProduct.amazon_asin || null,
         auto_sync: newProduct.auto_sync,
       });
       
@@ -182,7 +182,7 @@ const Admin = () => {
         in_stock: true,
         is_featured: false,
         is_special_offer: false,
-        digikala_id: "",
+        amazon_asin: "",
         auto_sync: true,
       });
     },
@@ -311,7 +311,7 @@ const Admin = () => {
       in_stock: product.in_stock ?? true,
       is_featured: product.is_featured ?? false,
       is_special_offer: product.is_special_offer ?? false,
-      digikala_id: product.digikala_id || "",
+      amazon_asin: product.amazon_asin || "",
       auto_sync: product.auto_sync ?? true,
     });
   };
@@ -437,8 +437,8 @@ const Admin = () => {
       />
       <Input
         placeholder="Digikala ID (اختیاری)"
-        value={data.digikala_id}
-        onChange={(e) => onChange({ ...data, digikala_id: e.target.value })}
+        value={data.amazon_asin}
+        onChange={(e) => onChange({ ...data, amazon_asin: e.target.value })}
         dir="ltr"
       />
       <div className="md:col-span-2 flex flex-wrap gap-6">
