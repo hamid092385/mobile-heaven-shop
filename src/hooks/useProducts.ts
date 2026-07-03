@@ -19,7 +19,7 @@ export interface Product {
   specs: Record<string, unknown> | null;
   created_at: string;
   price_updated_at: string | null;
-  digikala_id: string | null;
+  amazon_asin: string | null;
   auto_sync: boolean | null;
 }
 
