@@ -55,6 +55,8 @@ interface EditProduct {
   in_stock: boolean;
   is_featured: boolean;
   is_special_offer: boolean;
+  digikala_id: string;
+  auto_sync: boolean;
 }
 
 const Admin = () => {
@@ -84,6 +86,8 @@ const Admin = () => {
     in_stock: true,
     is_featured: false,
     is_special_offer: false,
+    digikala_id: "",
+    auto_sync: true,
   });
 
   const updateProduct = useMutation({
@@ -113,6 +117,8 @@ const Admin = () => {
           in_stock: product.in_stock,
           is_featured: product.is_featured,
           is_special_offer: product.is_special_offer,
+          digikala_id: product.digikala_id || null,
+          auto_sync: product.auto_sync,
           price_updated_at: new Date().toISOString(),
         })
         .eq("id", product.id);
@@ -154,6 +160,8 @@ const Admin = () => {
         in_stock: newProduct.in_stock,
         is_featured: newProduct.is_featured,
         is_special_offer: newProduct.is_special_offer,
+        digikala_id: newProduct.digikala_id || null,
+        auto_sync: newProduct.auto_sync,
       });
       
       if (error) throw error;
@@ -174,6 +182,8 @@ const Admin = () => {
         in_stock: true,
         is_featured: false,
         is_special_offer: false,
+        digikala_id: "",
+        auto_sync: true,
       });
     },
     onError: (error: Error) => {
@@ -301,6 +311,8 @@ const Admin = () => {
       in_stock: product.in_stock ?? true,
       is_featured: product.is_featured ?? false,
       is_special_offer: product.is_special_offer ?? false,
+      digikala_id: product.digikala_id || "",
+      auto_sync: product.auto_sync ?? true,
     });
   };
 
@@ -423,6 +435,12 @@ const Admin = () => {
         onChange={(e) => onChange({ ...data, image_url: e.target.value })}
         dir="ltr"
       />
+      <Input
+        placeholder="Digikala ID (اختیاری)"
+        value={data.digikala_id}
+        onChange={(e) => onChange({ ...data, digikala_id: e.target.value })}
+        dir="ltr"
+      />
       <div className="md:col-span-2 flex flex-wrap gap-6">
         <div className="flex items-center space-x-2 space-x-reverse">
           <Checkbox
@@ -447,6 +465,14 @@ const Admin = () => {
             onCheckedChange={(checked) => onChange({ ...data, is_special_offer: !!checked })}
           />
           <Label htmlFor="is_special_offer">پیشنهاد شگفت‌انگیز</Label>
+        </div>
+        <div className="flex items-center space-x-2 space-x-reverse">
+          <Checkbox
+            id="auto_sync"
+            checked={data.auto_sync}
+            onCheckedChange={(checked) => onChange({ ...data, auto_sync: !!checked })}
+          />
+          <Label htmlFor="auto_sync">همگام‌سازی خودکار قیمت (دیجی‌کالا)</Label>
         </div>
       </div>
       <div className="md:col-span-2 flex justify-end">
@@ -626,6 +652,12 @@ const Admin = () => {
                       {product.discount_percent && product.discount_percent > 0 && (
                         <span className="text-xs px-2 py-0.5 bg-green-500/10 text-green-600 rounded">%{product.discount_percent} تخفیف</span>
                       )}
+                      {product.digikala_id && (
+                        <span className="text-xs px-2 py-0.5 bg-blue-500/10 text-blue-500 rounded">DK: {product.digikala_id}</span>
+                      )}
+                      <span className={`text-xs px-2 py-0.5 rounded ${product.auto_sync ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground'}`}>
+                        {product.auto_sync ? '🔄 همگام‌سازی فعال' : '⏸ همگام‌سازی غیرفعال'}
+                      </span>
                     </div>
                     {product.price_updated_at && (
                       <p className="text-xs text-muted-foreground mt-1">
