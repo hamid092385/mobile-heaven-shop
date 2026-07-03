@@ -86,7 +86,7 @@ const Admin = () => {
     in_stock: true,
     is_featured: false,
     is_special_offer: false,
-    digikala_id: "",
+    amazon_asin: "",
     auto_sync: true,
   });
 
