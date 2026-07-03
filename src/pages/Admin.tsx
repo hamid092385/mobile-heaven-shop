@@ -55,7 +55,7 @@ interface EditProduct {
   in_stock: boolean;
   is_featured: boolean;
   is_special_offer: boolean;
-  digikala_id: string;
+  amazon_asin: string;
   auto_sync: boolean;
 }
 
@@ -86,7 +86,7 @@ const Admin = () => {
     in_stock: true,
     is_featured: false,
     is_special_offer: false,
-    digikala_id: "",
+    amazon_asin: "",
     auto_sync: true,
   });
 
@@ -117,7 +117,7 @@ const Admin = () => {
           in_stock: product.in_stock,
           is_featured: product.is_featured,
           is_special_offer: product.is_special_offer,
-          digikala_id: product.digikala_id || null,
+          amazon_asin: product.amazon_asin || null,
           auto_sync: product.auto_sync,
           price_updated_at: new Date().toISOString(),
         })
@@ -160,7 +160,7 @@ const Admin = () => {
         in_stock: newProduct.in_stock,
         is_featured: newProduct.is_featured,
         is_special_offer: newProduct.is_special_offer,
-        digikala_id: newProduct.digikala_id || null,
+        amazon_asin: newProduct.amazon_asin || null,
         auto_sync: newProduct.auto_sync,
       });
       
@@ -182,7 +182,7 @@ const Admin = () => {
         in_stock: true,
         is_featured: false,
         is_special_offer: false,
-        digikala_id: "",
+        amazon_asin: "",
         auto_sync: true,
       });
     },
@@ -311,7 +311,7 @@ const Admin = () => {
       in_stock: product.in_stock ?? true,
       is_featured: product.is_featured ?? false,
       is_special_offer: product.is_special_offer ?? false,
-      digikala_id: product.digikala_id || "",
+      amazon_asin: product.amazon_asin || "",
       auto_sync: product.auto_sync ?? true,
     });
   };
@@ -436,9 +436,9 @@ const Admin = () => {
         dir="ltr"
       />
       <Input
-        placeholder="Digikala ID (اختیاری)"
-        value={data.digikala_id}
-        onChange={(e) => onChange({ ...data, digikala_id: e.target.value })}
+        placeholder="Amazon ASIN (اختیاری)"
+        value={data.amazon_asin}
+        onChange={(e) => onChange({ ...data, amazon_asin: e.target.value })}
         dir="ltr"
       />
       <div className="md:col-span-2 flex flex-wrap gap-6">
@@ -472,7 +472,7 @@ const Admin = () => {
             checked={data.auto_sync}
             onCheckedChange={(checked) => onChange({ ...data, auto_sync: !!checked })}
           />
-          <Label htmlFor="auto_sync">همگام‌سازی خودکار قیمت (دیجی‌کالا)</Label>
+          <Label htmlFor="auto_sync">همگام‌سازی خودکار قیمت با آمازون</Label>
         </div>
       </div>
       <div className="md:col-span-2 flex justify-end">
@@ -652,8 +652,8 @@ const Admin = () => {
                       {product.discount_percent && product.discount_percent > 0 && (
                         <span className="text-xs px-2 py-0.5 bg-green-500/10 text-green-600 rounded">%{product.discount_percent} تخفیف</span>
                       )}
-                      {product.digikala_id && (
-                        <span className="text-xs px-2 py-0.5 bg-blue-500/10 text-blue-500 rounded">DK: {product.digikala_id}</span>
+                      {product.amazon_asin && (
+                        <span className="text-xs px-2 py-0.5 bg-blue-500/10 text-blue-500 rounded">ASIN: {product.amazon_asin}</span>
                       )}
                       <span className={`text-xs px-2 py-0.5 rounded ${product.auto_sync ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground'}`}>
                         {product.auto_sync ? '🔄 همگام‌سازی فعال' : '⏸ همگام‌سازی غیرفعال'}

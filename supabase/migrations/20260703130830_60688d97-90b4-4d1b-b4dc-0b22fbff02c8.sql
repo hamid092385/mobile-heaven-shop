@@ -1,0 +1,1 @@
+ALTER TABLE public.products RENAME COLUMN digikala_id TO amazon_asin;
