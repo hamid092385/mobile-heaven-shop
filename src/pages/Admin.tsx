@@ -55,7 +55,7 @@ interface EditProduct {
   in_stock: boolean;
   is_featured: boolean;
   is_special_offer: boolean;
-  digikala_id: string;
+  amazon_asin: string;
   auto_sync: boolean;
 }
 
