@@ -117,7 +117,7 @@ const Admin = () => {
           in_stock: product.in_stock,
           is_featured: product.is_featured,
           is_special_offer: product.is_special_offer,
-          digikala_id: product.digikala_id || null,
+          amazon_asin: product.amazon_asin || null,
           auto_sync: product.auto_sync,
           price_updated_at: new Date().toISOString(),
         })
