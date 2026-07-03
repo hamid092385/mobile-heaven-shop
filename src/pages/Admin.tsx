@@ -436,7 +436,7 @@ const Admin = () => {
         dir="ltr"
       />
       <Input
-        placeholder="Digikala ID (اختیاری)"
+        placeholder="Amazon ASIN (اختیاری)"
         value={data.amazon_asin}
         onChange={(e) => onChange({ ...data, amazon_asin: e.target.value })}
         dir="ltr"
