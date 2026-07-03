@@ -1,0 +1,1 @@
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS digikala_id text, ADD COLUMN IF NOT EXISTS auto_sync boolean NOT NULL DEFAULT true;

@@ -126,9 +126,11 @@ export type Database = {
       }
       products: {
         Row: {
+          auto_sync: boolean
           brand: string
           category: string
           created_at: string
+          digikala_id: string | null
           discount_percent: number | null
           id: string
           image_url: string | null
@@ -145,9 +147,11 @@ export type Database = {
           specs: Json | null
         }
         Insert: {
+          auto_sync?: boolean
           brand: string
           category: string
           created_at?: string
+          digikala_id?: string | null
           discount_percent?: number | null
           id?: string
           image_url?: string | null
@@ -164,9 +168,11 @@ export type Database = {
           specs?: Json | null
         }
         Update: {
+          auto_sync?: boolean
           brand?: string
           category?: string
           created_at?: string
+          digikala_id?: string | null
           discount_percent?: number | null
           id?: string
           image_url?: string | null
