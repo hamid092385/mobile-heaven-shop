@@ -472,7 +472,7 @@ const Admin = () => {
             checked={data.auto_sync}
             onCheckedChange={(checked) => onChange({ ...data, auto_sync: !!checked })}
           />
-          <Label htmlFor="auto_sync">همگام‌سازی خودکار قیمت (دیجی‌کالا)</Label>
+          <Label htmlFor="auto_sync">همگام‌سازی خودکار قیمت با آمازون</Label>
         </div>
       </div>
       <div className="md:col-span-2 flex justify-end">
@@ -652,8 +652,8 @@ const Admin = () => {
                       {product.discount_percent && product.discount_percent > 0 && (
                         <span className="text-xs px-2 py-0.5 bg-green-500/10 text-green-600 rounded">%{product.discount_percent} تخفیف</span>
                       )}
-                      {product.digikala_id && (
-                        <span className="text-xs px-2 py-0.5 bg-blue-500/10 text-blue-500 rounded">DK: {product.digikala_id}</span>
+                      {product.amazon_asin && (
+                        <span className="text-xs px-2 py-0.5 bg-blue-500/10 text-blue-500 rounded">ASIN: {product.amazon_asin}</span>
                       )}
                       <span className={`text-xs px-2 py-0.5 rounded ${product.auto_sync ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground'}`}>
                         {product.auto_sync ? '🔄 همگام‌سازی فعال' : '⏸ همگام‌سازی غیرفعال'}
