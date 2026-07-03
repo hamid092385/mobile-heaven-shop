@@ -55,6 +55,8 @@ interface EditProduct {
   in_stock: boolean;
   is_featured: boolean;
   is_special_offer: boolean;
+  digikala_id: string;
+  auto_sync: boolean;
 }
 
 const Admin = () => {
@@ -84,6 +86,8 @@ const Admin = () => {
     in_stock: true,
     is_featured: false,
     is_special_offer: false,
+    digikala_id: "",
+    auto_sync: true,
   });
 
   const updateProduct = useMutation({
@@ -113,6 +117,8 @@ const Admin = () => {
           in_stock: product.in_stock,
           is_featured: product.is_featured,
           is_special_offer: product.is_special_offer,
+          digikala_id: product.digikala_id || null,
+          auto_sync: product.auto_sync,
           price_updated_at: new Date().toISOString(),
         })
         .eq("id", product.id);
@@ -154,6 +160,8 @@ const Admin = () => {
         in_stock: newProduct.in_stock,
         is_featured: newProduct.is_featured,
         is_special_offer: newProduct.is_special_offer,
+        digikala_id: newProduct.digikala_id || null,
+        auto_sync: newProduct.auto_sync,
       });
       
       if (error) throw error;
@@ -174,6 +182,8 @@ const Admin = () => {
         in_stock: true,
         is_featured: false,
         is_special_offer: false,
+        digikala_id: "",
+        auto_sync: true,
       });
     },
     onError: (error: Error) => {
@@ -301,6 +311,8 @@ const Admin = () => {
       in_stock: product.in_stock ?? true,
       is_featured: product.is_featured ?? false,
       is_special_offer: product.is_special_offer ?? false,
+      digikala_id: product.digikala_id || "",
+      auto_sync: product.auto_sync ?? true,
     });
   };
 
