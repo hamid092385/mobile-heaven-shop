@@ -70,20 +70,50 @@ export const useSearchProducts = (query: string) => {
   });
 };
 
+// Maps a logical category key (used by page routes) to all raw category
+// values that may exist in the database — including Persian variants sent
+// by external tools like n8n. Matching is case-insensitive and ignores
+// spaces / ZWNJ so minor formatting differences still resolve.
+export const CATEGORY_ALIASES: Record<string, string[]> = {
+  mobile: [
+    "mobile",
+    "phone",
+    "phones",
+    "موبایل",
+    "گوشی",
+    "گوشی موبایل",
+    "تلفن همراه",
+  ],
+  tablet: ["tablet", "tablets", "تبلت"],
+  accessory: [
+    "accessory",
+    "accessories",
+    "لوازم جانبی",
+    "لوازم جانبی موبایل",
+    "لوازم جانبی گوشی",
+    "لوازم جانبی تبلت",
+  ],
+  laptop: ["laptop", "laptops", "لپ تاپ", "لپ‌تاپ", "لپ-تاپ"],
+};
+
+const normalize = (s: string) =>
+  s.toLowerCase().replace(/\u200c/g, " ").replace(/\s+/g, " ").trim();
+
 export const useProducts = (category?: string) => {
   return useQuery({
     queryKey: ["products", category],
     queryFn: async () => {
-      let query = supabase.from("products").select("*");
-      
-      if (category) {
-        query = query.eq("category", category);
-      }
-      
-      const { data, error } = await query.order("created_at", { ascending: false });
-      
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: false });
+
       if (error) throw error;
-      return data as Product[];
+      const all = (data as Product[]) ?? [];
+      if (!category) return all;
+
+      const aliases = (CATEGORY_ALIASES[category] ?? [category]).map(normalize);
+      return all.filter((p) => p.category && aliases.includes(normalize(p.category)));
     },
   });
 };
