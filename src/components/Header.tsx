@@ -15,9 +15,12 @@ import OrderTrackingModal from "./OrderTrackingModal";
 
 const navItems = [
   { label: "صفحه اصلی", path: "/" },
-  { label: "گوشی موبایل", path: "/mobile-phones" },
-  { label: "تبلت", path: "/tablets" },
-  { label: "لوازم جانبی", path: "/accessories" },
+  { label: "موبایل و تبلت", path: "/phones-tablets" },
+  { label: "ساعت هوشمند", path: "/smartwatches" },
+  { label: "هندزفری و صوتی", path: "/audio" },
+  { label: "لپ‌تاپ و کامپیوتر", path: "/computers" },
+  { label: "کنسول و گیمینگ", path: "/gaming" },
+  { label: "لوازم جانبی و شبکه", path: "/accessories" },
   { label: "پیشنهادات ویژه", path: "/special-offers" },
   { label: "تماس با ما", path: "/contact" },
 ];
