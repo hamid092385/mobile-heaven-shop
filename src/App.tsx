@@ -5,11 +5,16 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CompareProvider } from "@/hooks/useCompare";
 import CompareBar from "@/components/CompareBar";
+import { Navigate } from "react-router-dom";
 import Index from "./pages/Index";
-import MobilePhones from "./pages/MobilePhones";
-import Tablets from "./pages/Tablets";
+import PhonesTablets from "./pages/PhonesTablets";
+import Smartwatches from "./pages/Smartwatches";
+import Audio from "./pages/Audio";
+import Computers from "./pages/Computers";
+import Gaming from "./pages/Gaming";
 import Accessories from "./pages/Accessories";
 import SpecialOffersPage from "./pages/SpecialOffersPage";
+
 import Contact from "./pages/Contact";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
@@ -37,9 +42,15 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/mobile-phones" element={<MobilePhones />} />
-            <Route path="/tablets" element={<Tablets />} />
+            <Route path="/phones-tablets" element={<PhonesTablets />} />
+            <Route path="/smartwatches" element={<Smartwatches />} />
+            <Route path="/audio" element={<Audio />} />
+            <Route path="/computers" element={<Computers />} />
+            <Route path="/gaming" element={<Gaming />} />
             <Route path="/accessories" element={<Accessories />} />
+            {/* Legacy redirects */}
+            <Route path="/mobile-phones" element={<Navigate to="/phones-tablets" replace />} />
+            <Route path="/tablets" element={<Navigate to="/phones-tablets" replace />} />
             <Route path="/special-offers" element={<SpecialOffersPage />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/about" element={<About />} />

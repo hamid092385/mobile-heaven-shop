@@ -70,29 +70,61 @@ export const useSearchProducts = (query: string) => {
   });
 };
 
-// Maps a logical category key (used by page routes) to all raw category
-// values that may exist in the database — including Persian variants sent
-// by external tools like n8n. Matching is case-insensitive and ignores
-// spaces / ZWNJ so minor formatting differences still resolve.
+// Six top-level category groups exposed as sitewide navigation pages.
+// Each group aggregates several raw Persian category strings that arrive
+// from n8n / the database. `subs` is used both as the alias list for the
+// query and as the bubble sub-filters shown at the top of the page.
+export const CATEGORY_GROUPS = {
+  "phones-tablets": {
+    label: "موبایل و تبلت",
+    subs: ["موبایل", "تبلت"],
+  },
+  smartwatches: {
+    label: "ساعت هوشمند",
+    subs: ["ساعت هوشمند", "لوازم جانبی ساعت هوشمند"],
+  },
+  audio: {
+    label: "هندزفری و صوتی",
+    subs: ["هندزفری و هدفون توگوشی", "باند و اسپیکر", "لوازم جانبی هندزفری"],
+  },
+  computers: {
+    label: "لپ‌تاپ و کامپیوتر",
+    subs: ["لپ‌تاپ", "نت‌بوک", "قطعات اصلی کامپیوتر", "مانیتور و نمایشگر"],
+  },
+  gaming: {
+    label: "کنسول و گیمینگ",
+    subs: ["کنسول و دستگاه بازی", "تجهیزات گیمینگ"],
+  },
+  accessories: {
+    label: "لوازم جانبی و شبکه",
+    subs: [
+      "لوازم جانبی موبایل",
+      "لوازم جانبی کامپیوتر",
+      "لوازم جانبی لپ‌تاپ",
+      "لوازم جانبی تبلت",
+      "تجهیزات ذخیره‌سازی",
+      "مودم و تجهیزات شبکه",
+    ],
+  },
+} as const;
+
+export type CategoryGroupKey = keyof typeof CATEGORY_GROUPS;
+
+// Route → Persian categories mapping (for external reference / n8n docs).
+export const CATEGORY_MAPPING: Record<string, readonly string[]> = {
+  "/phones-tablets": CATEGORY_GROUPS["phones-tablets"].subs,
+  "/smartwatches": CATEGORY_GROUPS.smartwatches.subs,
+  "/audio": CATEGORY_GROUPS.audio.subs,
+  "/computers": CATEGORY_GROUPS.computers.subs,
+  "/gaming": CATEGORY_GROUPS.gaming.subs,
+  "/accessories": CATEGORY_GROUPS.accessories.subs,
+};
+
+// Legacy per-single-category aliases (kept for older code paths).
 export const CATEGORY_ALIASES: Record<string, string[]> = {
-  mobile: [
-    "mobile",
-    "phone",
-    "phones",
-    "موبایل",
-    "گوشی",
-    "گوشی موبایل",
-    "تلفن همراه",
-  ],
+  mobile: ["mobile", "phone", "phones", "موبایل", "گوشی", "گوشی موبایل", "تلفن همراه"],
   tablet: ["tablet", "tablets", "تبلت"],
-  accessory: [
-    "accessory",
-    "accessories",
-    "لوازم جانبی",
-    "لوازم جانبی موبایل",
-    "لوازم جانبی گوشی",
-    "لوازم جانبی تبلت",
-  ],
+  accessory: [...CATEGORY_GROUPS.accessories.subs, "accessory", "accessories", "لوازم جانبی"],
   laptop: ["laptop", "laptops", "لپ تاپ", "لپ‌تاپ", "لپ-تاپ"],
 };
 
@@ -117,6 +149,29 @@ export const useProducts = (category?: string) => {
     },
   });
 };
+
+// Fetch products belonging to any sub-category of a top-level group.
+export const useProductsByGroup = (groupKey: CategoryGroupKey) => {
+  return useQuery({
+    queryKey: ["products", "group", groupKey],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      const subs = CATEGORY_GROUPS[groupKey].subs.map(normalize);
+      return ((data as Product[]) ?? []).filter(
+        (p) => p.category && subs.includes(normalize(p.category)),
+      );
+    },
+  });
+};
+
+// Exported for use by CategoryPage when filtering by the bubble sub-filter.
+export const normalizeCategory = normalize;
+
 
 export const useFeaturedProducts = () => {
   return useQuery({
