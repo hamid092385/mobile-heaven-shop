@@ -9,7 +9,7 @@ import {
   useProductsByGroup,
   CATEGORY_GROUPS,
   CategoryGroupKey,
-  normalizeCategory,
+  categoryMatchesSub,
 } from "@/hooks/useProducts";
 import { cn } from "@/lib/utils";
 import {
