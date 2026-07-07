@@ -110,6 +110,32 @@ export const CATEGORY_GROUPS = {
 
 export type CategoryGroupKey = keyof typeof CATEGORY_GROUPS;
 
+// Per sub-category alias list. The DB `category` column may contain either
+// the Persian label or an English shorthand (mobile/tablet/accessory/...)
+// depending on how n8n / the admin panel wrote the row. All variants below
+// resolve to the same bubble filter shown in the UI.
+export const SUB_ALIASES: Record<string, string[]> = {
+  "موبایل": ["موبایل", "گوشی", "گوشی موبایل", "تلفن همراه", "mobile", "phone", "phones"],
+  "تبلت": ["تبلت", "tablet", "tablets"],
+  "ساعت هوشمند": ["ساعت هوشمند", "smartwatch", "smart watch", "watch"],
+  "لوازم جانبی ساعت هوشمند": ["لوازم جانبی ساعت هوشمند", "smartwatch accessory"],
+  "هندزفری و هدفون توگوشی": ["هندزفری و هدفون توگوشی", "هندزفری", "هدفون", "earphone", "headphone", "earbuds"],
+  "باند و اسپیکر": ["باند و اسپیکر", "اسپیکر", "باند", "speaker"],
+  "لوازم جانبی هندزفری": ["لوازم جانبی هندزفری", "headphone accessory"],
+  "لپ‌تاپ": ["لپ‌تاپ", "لپ تاپ", "لپ-تاپ", "laptop", "laptops"],
+  "نت‌بوک": ["نت‌بوک", "نت بوک", "netbook"],
+  "قطعات اصلی کامپیوتر": ["قطعات اصلی کامپیوتر", "قطعات کامپیوتر", "pc parts"],
+  "مانیتور و نمایشگر": ["مانیتور و نمایشگر", "مانیتور", "monitor", "display"],
+  "کنسول و دستگاه بازی": ["کنسول و دستگاه بازی", "کنسول", "console", "gaming console"],
+  "تجهیزات گیمینگ": ["تجهیزات گیمینگ", "گیمینگ", "gaming"],
+  "لوازم جانبی موبایل": ["لوازم جانبی موبایل", "لوازم جانبی گوشی", "mobile accessory", "phone accessory", "accessory", "accessories", "لوازم جانبی"],
+  "لوازم جانبی کامپیوتر": ["لوازم جانبی کامپیوتر", "pc accessory", "computer accessory"],
+  "لوازم جانبی لپ‌تاپ": ["لوازم جانبی لپ‌تاپ", "لوازم جانبی لپ تاپ", "laptop accessory"],
+  "لوازم جانبی تبلت": ["لوازم جانبی تبلت", "tablet accessory"],
+  "تجهیزات ذخیره‌سازی": ["تجهیزات ذخیره‌سازی", "ذخیره سازی", "storage", "ssd", "hdd"],
+  "مودم و تجهیزات شبکه": ["مودم و تجهیزات شبکه", "مودم", "شبکه", "modem", "router", "network"],
+};
+
 // Route → Persian categories mapping (for external reference / n8n docs).
 export const CATEGORY_MAPPING: Record<string, readonly string[]> = {
   "/phones-tablets": CATEGORY_GROUPS["phones-tablets"].subs,
