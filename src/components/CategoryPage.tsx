@@ -9,7 +9,7 @@ import {
   useProductsByGroup,
   CATEGORY_GROUPS,
   CategoryGroupKey,
-  normalizeCategory,
+  categoryMatchesSub,
 } from "@/hooks/useProducts";
 import { cn } from "@/lib/utils";
 import {
@@ -77,9 +77,10 @@ const CategoryPage = ({
   const subCounts = useMemo(() => {
     const map: Record<string, number> = {};
     (products ?? []).forEach((p) => {
-      const n = normalizeCategory(p.category ?? "");
       subs.forEach((s) => {
-        if (normalizeCategory(s) === n) map[s] = (map[s] ?? 0) + 1;
+        if (categoryMatchesSub(p.category ?? null, s)) {
+          map[s] = (map[s] ?? 0) + 1;
+        }
       });
     });
     return map;
@@ -88,10 +89,7 @@ const CategoryPage = ({
   const filteredProducts = useMemo(() => {
     if (!products) return [];
     return products.filter((product) => {
-      if (
-        activeSub !== "all" &&
-        normalizeCategory(product.category ?? "") !== normalizeCategory(activeSub)
-      ) {
+      if (activeSub !== "all" && !categoryMatchesSub(product.category ?? null, activeSub)) {
         return false;
       }
       if (filters.brands.length > 0 && !filters.brands.includes(product.brand)) {
