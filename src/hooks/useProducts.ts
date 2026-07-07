@@ -176,6 +176,18 @@ export const useProducts = (category?: string) => {
   });
 };
 
+// Returns all normalized alias strings that map to a given Persian sub label.
+export const aliasesForSub = (sub: string): string[] => {
+  const list = SUB_ALIASES[sub] ?? [sub];
+  return list.map(normalize);
+};
+
+// True if a DB `category` value belongs to the given Persian sub label.
+export const categoryMatchesSub = (category: string | null, sub: string): boolean => {
+  if (!category) return false;
+  return aliasesForSub(sub).includes(normalize(category));
+};
+
 // Fetch products belonging to any sub-category of a top-level group.
 export const useProductsByGroup = (groupKey: CategoryGroupKey) => {
   return useQuery({
@@ -187,9 +199,11 @@ export const useProductsByGroup = (groupKey: CategoryGroupKey) => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      const subs = CATEGORY_GROUPS[groupKey].subs.map(normalize);
+      const allAliases = new Set(
+        CATEGORY_GROUPS[groupKey].subs.flatMap((s) => aliasesForSub(s)),
+      );
       return ((data as Product[]) ?? []).filter(
-        (p) => p.category && subs.includes(normalize(p.category)),
+        (p) => p.category && allAliases.has(normalize(p.category)),
       );
     },
   });
