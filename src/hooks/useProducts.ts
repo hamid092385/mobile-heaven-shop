@@ -52,7 +52,7 @@ const sanitizeSearchQuery = (input: string): string => {
 
 export const useSearchProducts = (query: string) => {
   return useQuery({
-    queryKey: ["products", "search", query],
+    queryKey: ["products", PRODUCTS_CACHE_VERSION, "search", query],
     queryFn: async () => {
       if (!query.trim()) return [];
       const sanitized = sanitizeSearchQuery(query);
@@ -66,6 +66,7 @@ export const useSearchProducts = (query: string) => {
       return data as unknown as Product[];
     },
     enabled: !!query.trim(),
+    staleTime: 0,
   });
 };
 
