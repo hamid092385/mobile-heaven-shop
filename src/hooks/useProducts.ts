@@ -137,7 +137,7 @@ export const normalizeCategory = normalize;
 
 export const useFeaturedProducts = () => {
   return useQuery({
-    queryKey: ["products", "featured"],
+    queryKey: ["products", PRODUCTS_CACHE_VERSION, "featured"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
@@ -148,12 +148,13 @@ export const useFeaturedProducts = () => {
       if (error) throw error;
       return data as unknown as Product[];
     },
+    staleTime: 0,
   });
 };
 
 export const useSpecialOffers = () => {
   return useQuery({
-    queryKey: ["products", "special-offers"],
+    queryKey: ["products", PRODUCTS_CACHE_VERSION, "special-offers"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
@@ -163,5 +164,6 @@ export const useSpecialOffers = () => {
       if (error) throw error;
       return data as unknown as Product[];
     },
+    staleTime: 0,
   });
 };
