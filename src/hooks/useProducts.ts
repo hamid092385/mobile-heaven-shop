@@ -103,7 +103,7 @@ export const categoryMatchesSub = (category: string | null, sub: string): boolea
 
 export const useProducts = (category?: string) => {
   return useQuery({
-    queryKey: ["products", category],
+    queryKey: ["products", PRODUCTS_CACHE_VERSION, category],
     queryFn: async () => {
       let q = supabase.from("products").select("*").order("created_at", { ascending: false });
       if (category) q = q.eq("category_fa", category);
@@ -111,6 +111,7 @@ export const useProducts = (category?: string) => {
       if (error) throw error;
       return (data as unknown as Product[]) ?? [];
     },
+    staleTime: 0,
   });
 };
 
@@ -118,7 +119,7 @@ export const useProducts = (category?: string) => {
 export const useProductsByGroup = (groupKey: CategoryGroupKey) => {
   const categoryFa = CATEGORY_GROUPS[groupKey].categoryFa;
   return useQuery({
-    queryKey: ["products", "group", groupKey],
+    queryKey: ["products", PRODUCTS_CACHE_VERSION, "group", groupKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
@@ -128,6 +129,7 @@ export const useProductsByGroup = (groupKey: CategoryGroupKey) => {
       if (error) throw error;
       return (data as unknown as Product[]) ?? [];
     },
+    staleTime: 0,
   });
 };
 
