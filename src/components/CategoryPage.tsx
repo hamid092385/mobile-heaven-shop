@@ -163,38 +163,40 @@ const CategoryPage = ({
             </div>
           </div>
 
-          {/* Bubble sub-filters */}
-          <div className="flex flex-wrap gap-2 mb-8 p-3 rounded-2xl bg-surface-light/50 border border-border/40">
-            <button
-              onClick={() => setActiveSub("all")}
-              className={cn(
-                "px-4 py-2 rounded-full text-sm font-medium transition-all border",
-                activeSub === "all"
-                  ? "bg-primary text-primary-foreground border-primary neon-glow"
-                  : "bg-background/60 border-border/60 hover:border-primary/60 hover:text-primary",
-              )}
-            >
-              همه ({products?.length ?? 0})
-            </button>
-            {subs.map((sub) => {
-              const count = subCounts[sub] ?? 0;
-              const active = activeSub === sub;
-              return (
-                <button
-                  key={sub}
-                  onClick={() => setActiveSub(sub)}
-                  className={cn(
-                    "px-4 py-2 rounded-full text-sm font-medium transition-all border",
-                    active
-                      ? "bg-primary text-primary-foreground border-primary neon-glow"
-                      : "bg-background/60 border-border/60 hover:border-primary/60 hover:text-primary",
-                  )}
-                >
-                  {sub} <span className="opacity-70">({count})</span>
-                </button>
-              );
-            })}
-          </div>
+          {/* Bubble sub-filters (only when subs are configured) */}
+          {subs.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-8 p-3 rounded-2xl bg-surface-light/50 border border-border/40">
+              <button
+                onClick={() => setActiveSub("all")}
+                className={cn(
+                  "px-4 py-2 rounded-full text-sm font-medium transition-all border",
+                  activeSub === "all"
+                    ? "bg-primary text-primary-foreground border-primary neon-glow"
+                    : "bg-background/60 border-border/60 hover:border-primary/60 hover:text-primary",
+                )}
+              >
+                همه ({products?.length ?? 0})
+              </button>
+              {subs.map((sub) => {
+                const count = subCounts[sub] ?? 0;
+                const active = activeSub === sub;
+                return (
+                  <button
+                    key={sub}
+                    onClick={() => setActiveSub(sub)}
+                    className={cn(
+                      "px-4 py-2 rounded-full text-sm font-medium transition-all border",
+                      active
+                        ? "bg-primary text-primary-foreground border-primary neon-glow"
+                        : "bg-background/60 border-border/60 hover:border-primary/60 hover:text-primary",
+                    )}
+                  >
+                    {sub} <span className="opacity-70">({count})</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           <div className="flex gap-8">
             <ProductFilters

@@ -130,6 +130,7 @@ export type Database = {
           auto_sync: boolean
           brand: string
           category: string
+          category_fa: string | null
           created_at: string
           discount_percent: number | null
           id: string
@@ -151,6 +152,7 @@ export type Database = {
           auto_sync?: boolean
           brand: string
           category: string
+          category_fa?: string | null
           created_at?: string
           discount_percent?: number | null
           id?: string
@@ -172,6 +174,7 @@ export type Database = {
           auto_sync?: boolean
           brand?: string
           category?: string
+          category_fa?: string | null
           created_at?: string
           discount_percent?: number | null
           id?: string
