@@ -1,6 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+// Bump this whenever the product dataset is fully replaced to invalidate any
+// stale React Query cache still held by returning visitors.
+const PRODUCTS_CACHE_VERSION = "v3-amazon-2026-07-09";
+
 export interface Product {
   id: string;
   name: string;
@@ -26,7 +30,7 @@ export interface Product {
 
 export const useProductById = (id: string) => {
   return useQuery({
-    queryKey: ["product", id],
+    queryKey: ["product", PRODUCTS_CACHE_VERSION, id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
@@ -38,6 +42,7 @@ export const useProductById = (id: string) => {
       return data as Product | null;
     },
     enabled: !!id,
+    staleTime: 0,
   });
 };
 
@@ -47,7 +52,7 @@ const sanitizeSearchQuery = (input: string): string => {
 
 export const useSearchProducts = (query: string) => {
   return useQuery({
-    queryKey: ["products", "search", query],
+    queryKey: ["products", PRODUCTS_CACHE_VERSION, "search", query],
     queryFn: async () => {
       if (!query.trim()) return [];
       const sanitized = sanitizeSearchQuery(query);
@@ -61,6 +66,7 @@ export const useSearchProducts = (query: string) => {
       return data as unknown as Product[];
     },
     enabled: !!query.trim(),
+    staleTime: 0,
   });
 };
 
@@ -97,7 +103,7 @@ export const categoryMatchesSub = (category: string | null, sub: string): boolea
 
 export const useProducts = (category?: string) => {
   return useQuery({
-    queryKey: ["products", category],
+    queryKey: ["products", PRODUCTS_CACHE_VERSION, category],
     queryFn: async () => {
       let q = supabase.from("products").select("*").order("created_at", { ascending: false });
       if (category) q = q.eq("category_fa", category);
@@ -105,6 +111,7 @@ export const useProducts = (category?: string) => {
       if (error) throw error;
       return (data as unknown as Product[]) ?? [];
     },
+    staleTime: 0,
   });
 };
 
@@ -112,7 +119,7 @@ export const useProducts = (category?: string) => {
 export const useProductsByGroup = (groupKey: CategoryGroupKey) => {
   const categoryFa = CATEGORY_GROUPS[groupKey].categoryFa;
   return useQuery({
-    queryKey: ["products", "group", groupKey],
+    queryKey: ["products", PRODUCTS_CACHE_VERSION, "group", groupKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
@@ -122,6 +129,7 @@ export const useProductsByGroup = (groupKey: CategoryGroupKey) => {
       if (error) throw error;
       return (data as unknown as Product[]) ?? [];
     },
+    staleTime: 0,
   });
 };
 
@@ -129,7 +137,7 @@ export const normalizeCategory = normalize;
 
 export const useFeaturedProducts = () => {
   return useQuery({
-    queryKey: ["products", "featured"],
+    queryKey: ["products", PRODUCTS_CACHE_VERSION, "featured"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
@@ -140,12 +148,13 @@ export const useFeaturedProducts = () => {
       if (error) throw error;
       return data as unknown as Product[];
     },
+    staleTime: 0,
   });
 };
 
 export const useSpecialOffers = () => {
   return useQuery({
-    queryKey: ["products", "special-offers"],
+    queryKey: ["products", PRODUCTS_CACHE_VERSION, "special-offers"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
@@ -155,5 +164,6 @@ export const useSpecialOffers = () => {
       if (error) throw error;
       return data as unknown as Product[];
     },
+    staleTime: 0,
   });
 };
