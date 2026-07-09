@@ -1,6 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+// Bump this whenever the product dataset is fully replaced to invalidate any
+// stale React Query cache still held by returning visitors.
+const PRODUCTS_CACHE_VERSION = "v3-amazon-2026-07-09";
+
 export interface Product {
   id: string;
   name: string;
