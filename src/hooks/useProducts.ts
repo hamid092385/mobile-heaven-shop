@@ -30,7 +30,7 @@ export interface Product {
 
 export const useProductById = (id: string) => {
   return useQuery({
-    queryKey: ["product", id],
+    queryKey: ["product", PRODUCTS_CACHE_VERSION, id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
@@ -42,6 +42,7 @@ export const useProductById = (id: string) => {
       return data as Product | null;
     },
     enabled: !!id,
+    staleTime: 0,
   });
 };
 
